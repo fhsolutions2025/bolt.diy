@@ -7,7 +7,6 @@ import { optimizeCssModules } from 'vite-plugin-optimize-css-modules';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import * as dotenv from 'dotenv';
 
-// Load environment variables from multiple files
 dotenv.config({ path: '.env.local' });
 dotenv.config({ path: '.env' });
 dotenv.config();
@@ -43,9 +42,9 @@ export default defineConfig((config) => {
           return null;
         },
       },
-      // FIXED: Only load the proxy if not in test mode AND not explicitly skipped during build
       config.mode !== 'test' && !process.env.SKIP_WRANGLER_PROXY && remixCloudflareDevProxy(),
       remixVitePlugin({
+        presets: [vercelPreset()], // CRITICAL FIX: This tells Vercel how to run the server
         future: {
           v3_fetcherPersist: true,
           v3_relativeSplatPath: true,
