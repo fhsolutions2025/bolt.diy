@@ -4,8 +4,7 @@
     "types": [
       "@remix-run/node",
       "vite/client",
-      "@types/dom-speech-recognition",
-      "electron"
+      "@types/dom-speech-recognition"
     ],
     "isolatedModules": true,
     "esModuleInterop": true,
