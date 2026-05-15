@@ -36,7 +36,8 @@
     "node_modules",
     "build",
     "public",
-    "functions", 
+    "functions",
+    "electron",
     "**/*.test.ts",
     "**/*.test.tsx"
   ]
