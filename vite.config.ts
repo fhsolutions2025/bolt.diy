@@ -25,20 +25,32 @@ export default defineConfig((config) => {
     },
     plugins: [
       nodePolyfills({
-        include: ['buffer', 'process', 'util', 'stream'],
+        // REMOVED 'util' from include
+        include: ['buffer', 'process', 'stream'],
         globals: {
           Buffer: true,
           process: true,
           global: true,
         },
         protocolImports: true,
-        exclude: ['child_process', 'fs', 'path'],
+        // ADDED 'util' to exclude so Node's native util is used
+        exclude: ['child_process', 'fs', 'path', 'util'],
       }),
-      // We only load the proxy if we are NOT in production build mode
+      {
+        name: 'buffer-polyfill',
+        transform(code, id) {
+          if (id.includes('env.mjs')) {
+            return {
+              code: `import { Buffer } from 'buffer';\n${code}`,
+              map: null,
+            };
+          }
+          return null;
+        },
+      },
       config.mode !== 'test' && !process.env.SKIP_WRANGLER_PROXY && remixCloudflareDevProxy(),
       remixVitePlugin({
-        // Priority preset for Vercel deployment
-        presets: [vercelPreset()], 
+        presets: [vercelPreset()], // CRITICAL FIX: This tells Vercel how to run the server
         future: {
           v3_fetcherPersist: true,
           v3_relativeSplatPath: true,
