@@ -6,6 +6,10 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { optimizeCssModules } from 'vite-plugin-optimize-css-modules';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import * as dotenv from 'dotenv';
+import { installGlobals } from '@remix-run/node';
+
+// Required for Remix on Vercel to handle standard Node globals correctly
+installGlobals();
 
 dotenv.config({ path: '.env.local' });
 dotenv.config({ path: '.env' });
@@ -30,21 +34,11 @@ export default defineConfig((config) => {
         protocolImports: true,
         exclude: ['child_process', 'fs', 'path'],
       }),
-      {
-        name: 'buffer-polyfill',
-        transform(code, id) {
-          if (id.includes('env.mjs')) {
-            return {
-              code: `import { Buffer } from 'buffer';\n${code}`,
-              map: null,
-            };
-          }
-          return null;
-        },
-      },
+      // We only load the proxy if we are NOT in production build mode
       config.mode !== 'test' && !process.env.SKIP_WRANGLER_PROXY && remixCloudflareDevProxy(),
       remixVitePlugin({
-        presets: [vercelPreset()], // CRITICAL FIX: This tells Vercel how to run the server
+        // Priority preset for Vercel deployment
+        presets: [vercelPreset()], 
         future: {
           v3_fetcherPersist: true,
           v3_relativeSplatPath: true,
