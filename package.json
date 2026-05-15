@@ -46,6 +46,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+   "@vercel/remix": "^2.16.0",
     "@ai-sdk/amazon-bedrock": "1.0.6",
     "@ai-sdk/anthropic": "0.0.39",
     "@ai-sdk/cohere": "1.0.3",
