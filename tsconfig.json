@@ -36,3 +36,16 @@
     "**/.client/**/*.tsx"
   ]
 }
+{
+  "compilerOptions": {
+    // ... your existing options
+  },
+  "exclude": [
+    "node_modules",
+    "build",
+    "public",
+    "functions", 
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
+}
