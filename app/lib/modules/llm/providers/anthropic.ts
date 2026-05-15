@@ -18,6 +18,13 @@ export default class AnthropicProvider extends BaseProvider {
      * Claude 3.5 Sonnet: 200k context, excellent for complex reasoning and coding
      */
     {
+      name: 'claude-3-5-sonnet-latest',
+      label: 'Claude 3.5 Sonnet (Latest)',
+      provider: 'Anthropic',
+      maxTokenAllowed: 200000,
+      maxCompletionTokens: 128000,
+    },
+    {
       name: 'claude-3-5-sonnet-20241022',
       label: 'Claude 3.5 Sonnet',
       provider: 'Anthropic',

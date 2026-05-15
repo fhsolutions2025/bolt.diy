@@ -112,7 +112,15 @@ export const ChatImpl = memo(
     });
     const { showChat } = useStore(chatStore);
     const [animationScope, animate] = useAnimate();
-    const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+    const [apiKeys, setApiKeys] = useState<Record<string, string>>(() => {
+      // Initialize from cookies so the first request already has the keys
+      try {
+        const stored = Cookies.get('apiKeys');
+        return stored ? JSON.parse(stored) : {};
+      } catch {
+        return {};
+      }
+    });
     const [chatMode, setChatMode] = useState<'discuss' | 'build'>('build');
     const [selectedElement, setSelectedElement] = useState<ElementInfo | null>(null);
     const mcpSettings = useMCPStore((state) => state.settings);
