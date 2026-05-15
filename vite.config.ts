@@ -39,7 +39,7 @@ export default defineConfig((config) => {
           process: true,
           global: true,
         },
-        protocolImports: false,
+        protocolImports: true,
         exclude: ['child_process', 'fs', 'path', 'util', 'stream'],
       }),
       {
