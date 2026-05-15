@@ -39,11 +39,11 @@ export default defineConfig((config) => {
               map: null,
             };
           }
-
           return null;
         },
       },
-      config.mode !== 'test' && remixCloudflareDevProxy(),
+      // FIXED: Only load the proxy if not in test mode AND not explicitly skipped during build
+      config.mode !== 'test' && !process.env.SKIP_WRANGLER_PROXY && remixCloudflareDevProxy(),
       remixVitePlugin({
         future: {
           v3_fetcherPersist: true,
@@ -79,7 +79,7 @@ export default defineConfig((config) => {
         '**/cypress/**',
         '**/.{idea,git,cache,output,temp}/**',
         '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
-        '**/tests/preview/**', // Exclude preview tests that require Playwright
+        '**/tests/preview/**',
       ],
     },
   };
@@ -100,11 +100,9 @@ function chrome129IssuePlugin() {
             res.end(
               '<body><h1>Please use Chrome Canary for testing.</h1><p>Chrome 129 has an issue with JavaScript modules & Vite local development, see <a href="https://github.com/stackblitz/bolt.new/issues/86#issuecomment-2395519258">for more information.</a></p><p><b>Note:</b> This only impacts <u>local development</u>. `pnpm run build` and `pnpm run start` will work fine in this browser.</p></body>',
             );
-
             return;
           }
         }
-
         next();
       });
     },
