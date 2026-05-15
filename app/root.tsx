@@ -111,7 +111,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </>
   );
 }
+import { useRouteError, isRouteErrorResponse } from '@remix-run/react';
 
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const message = isRouteErrorResponse(error)
+    ? `${error.status} ${error.statusText}`
+    : error instanceof Error
+      ? error.message
+      : 'An unexpected error occurred';
+
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Error</title>
+      </head>
+      <body style={{ fontFamily: 'sans-serif', padding: '2rem', color: '#333' }}>
+        <h1>Application Error</h1>
+        <p>{message}</p>
+      </body>
+    </html>
+  );
+}
 import { logStore } from './lib/stores/logs';
 
 export default function App() {
