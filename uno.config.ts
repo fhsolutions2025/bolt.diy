@@ -1,10 +1,14 @@
+import { createRequire } from 'node:module'; // Added for automated icon loading
 import { globSync } from 'fast-glob';
 import fs from 'node:fs/promises';
 import { basename } from 'node:path';
 import { defineConfig, presetIcons, presetUno, transformerDirectives } from 'unocss';
 
-const iconPaths = globSync('./icons/*.svg');
+// Smarter manner: Load the phosphor collection using node requirements
+const _require = createRequire(import.meta.url);
+const phCollection = _require('@iconify-json/ph/icons.json');
 
+const iconPaths = globSync('./icons/*.svg');
 const collectionName = 'bolt';
 
 const customIconCollection = iconPaths.reduce(
@@ -105,13 +109,7 @@ export default defineConfig({
     kdb: 'bg-bolt-elements-code-background text-bolt-elements-code-text py-1 px-1.5 rounded-md',
     'max-w-chat': 'max-w-[var(--chat-max-width)]',
   },
-  rules: [
-    /**
-     * This shorthand doesn't exist in Tailwind and we overwrite it to avoid
-     * any conflicts with minified CSS classes.
-     */
-    ['b', {}],
-  ],
+  rules: [['b', {}]],
   theme: {
     colors: {
       ...COLOR_PRIMITIVES,
@@ -241,39 +239,21 @@ export default defineConfig({
       warn: true,
       collections: {
         ...customIconCollection,
+        ph: phCollection, // NEW: Automated phosphor icon registration
       },
       unit: 'em',
     }),
   ],
 });
 
-/**
- * Generates an alpha palette for a given hex color.
- *
- * @param hex - The hex color code (without alpha) to generate the palette from.
- * @returns An object where keys are opacity percentages and values are hex colors with alpha.
- *
- * Example:
- *
- * ```
- * {
- *   '1': '#FFFFFF03',
- *   '2': '#FFFFFF05',
- *   '3': '#FFFFFF08',
- * }
- * ```
- */
 function generateAlphaPalette(hex: string) {
-  return [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].reduce(
-    (acc, opacity) => {
-      const alpha = Math.round((opacity / 100) * 255)
-        .toString(16)
-        .padStart(2, '0');
+  return [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].reduce((acc, opacity) => {
+    const alpha = Math.round((opacity / 100) * 255)
+      .toString(16)
+      .padStart(2, '0');
 
-      acc[opacity] = `${hex}${alpha}`;
+    acc[opacity] = `${hex}${alpha}`;
 
-      return acc;
-    },
-    {} as Record<number, string>,
-  );
+    return acc;
+  }, {} as Record<number, string>);
 }
