@@ -1,70 +1,67 @@
+import { PassThrough } from 'node:stream';
 import type { AppLoadContext, EntryContext } from '@remix-run/node';
+import { createReadableStreamFromReadable } from '@remix-run/node';
 import { RemixServer } from '@remix-run/react';
 import { isbot } from 'isbot';
-import { renderToReadableStream } from 'react-dom/server';
+import { renderToPipeableStream } from 'react-dom/server';
 import { renderHeadToString } from 'remix-island';
 import { Head } from './root';
 import { themeStore } from '~/lib/stores/theme';
 
 const ABORT_DELAY = 5000;
 
-export default async function handleRequest(
+export default function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
   _loadContext: AppLoadContext,
 ) {
-  const userAgent = request.headers.get('user-agent');
-  const isBot = isbot(userAgent || '');
-  const head = renderHeadToString({ request, remixContext, Head });
-  const encoder = new TextEncoder();
+  return new Promise((resolve, reject) => {
+    const userAgent = request.headers.get('user-agent');
+    const readyOption: 'onShellReady' | 'onAllReady' = isbot(userAgent || '') ? 'onAllReady' : 'onShellReady';
 
-  const reactStream = await renderToReadableStream(
-    <RemixServer context={remixContext} url={request.url} />,
-    {
-      signal: AbortSignal.timeout(ABORT_DELAY),
-      onError(error: unknown) {
-        responseStatusCode = 500;
-        console.error(error);
+    const { pipe, abort } = renderToPipeableStream(
+      <RemixServer context={remixContext} url={request.url} />,
+      {
+        [readyOption]() {
+          const head = renderHeadToString({ request, remixContext, Head });
+
+          // body is what we expose as the response stream
+          const body = new PassThrough();
+          const stream = createReadableStreamFromReadable(body);
+
+          responseHeaders.set('Content-Type', 'text/html');
+          responseHeaders.set('Cross-Origin-Embedder-Policy', 'credentialless');
+          responseHeaders.set('Cross-Origin-Opener-Policy', 'same-origin');
+
+          resolve(
+            new Response(stream, {
+              headers: responseHeaders,
+              status: responseStatusCode,
+            }),
+          );
+
+          body.write(
+            `<!DOCTYPE html><html lang="en" data-theme="${themeStore.value}"><head>${head}</head><body><div id="root" class="w-full h-full">`,
+          );
+
+          // Relay React output to body, appending closing tags when done
+          const reactOutput = new PassThrough();
+          reactOutput.on('data', (chunk) => body.write(chunk));
+          reactOutput.on('end', () => body.end('</div></body></html>'));
+          pipe(reactOutput);
+        },
+        onShellError(error: unknown) {
+          reject(error);
+        },
+        onError(error: unknown) {
+          responseStatusCode = 500;
+          console.error(error);
+        },
       },
-    },
-  );
+    );
 
-  if (isBot) {
-    await reactStream.allReady;
-  }
-
-  const prefix = `<!DOCTYPE html><html lang="en" data-theme="${themeStore.value}"><head>${head}</head><body><div id="root" class="w-full h-full">`;
-  const suffix = '</div></body></html>';
-
-  const stream = new ReadableStream({
-    async start(controller) {
-      controller.enqueue(encoder.encode(prefix));
-
-      const reader = reactStream.getReader();
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          break;
-        }
-
-        controller.enqueue(value);
-      }
-
-      controller.enqueue(encoder.encode(suffix));
-      controller.close();
-    },
-  });
-
-  responseHeaders.set('Content-Type', 'text/html');
-  responseHeaders.set('Cross-Origin-Embedder-Policy', 'credentialless');
-  responseHeaders.set('Cross-Origin-Opener-Policy', 'same-origin');
-
-  return new Response(stream, {
-    headers: responseHeaders,
-    status: responseStatusCode,
+    setTimeout(abort, ABORT_DELAY);
   });
 }
