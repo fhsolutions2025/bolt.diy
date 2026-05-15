@@ -25,10 +25,10 @@ export default class AnthropicProvider extends BaseProvider {
       maxCompletionTokens: 128000,
     },
 
-    // Claude 3 Haiku: 200k context, fastest and most cost-effective
+    // Claude Haiku 4.5: 200k context, fastest and most cost-effective
     {
-      name: 'claude-3-haiku-20240307',
-      label: 'Claude 3 Haiku',
+      name: 'claude-haiku-4-5-20251001',
+      label: 'Claude Haiku 4.5',
       provider: 'Anthropic',
       maxTokenAllowed: 200000,
       maxCompletionTokens: 128000,
