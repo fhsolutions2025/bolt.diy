@@ -49,7 +49,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
   });
 
   const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme, maxLLMSteps } =
-    await request.json<{
+    (await request.json()) as {
       messages: Messages;
       files: any;
       promptId?: string;
@@ -65,7 +65,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         };
       };
       maxLLMSteps: number;
-    }>();
+    };
 
   const cookieHeader = request.headers.get('Cookie');
   const apiKeys = JSON.parse(parseCookies(cookieHeader || '').apiKeys || '{}');

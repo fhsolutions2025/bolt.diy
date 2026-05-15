@@ -33,15 +33,14 @@ export default defineConfig((config) => {
     },
     plugins: [
       nodePolyfills({
-        // Excluded 'util' to use Node's native version on the server
-        include: ['buffer', 'process', 'stream'],
+        include: ['buffer', 'process'],
         globals: {
           Buffer: true,
           process: true,
           global: true,
         },
         protocolImports: true,
-        exclude: ['child_process', 'fs', 'path', 'util'],
+        exclude: ['child_process', 'fs', 'path', 'util', 'stream'],
       }),
       {
         name: 'buffer-polyfill',
