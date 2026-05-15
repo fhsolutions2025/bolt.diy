@@ -8,7 +8,9 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import * as dotenv from 'dotenv';
 import { installGlobals } from '@remix-run/node';
 
-// Required for Remix on Vercel to handle standard Node globals correctly
+/** * CRITICAL: Install Node.js globals for standard Node environment 
+ * This ensures standard APIs are available during Vercel server execution.
+ */
 installGlobals();
 
 dotenv.config({ path: '.env.local' });
@@ -23,9 +25,15 @@ export default defineConfig((config) => {
     build: {
       target: 'esnext',
     },
+    // NEW: Explicitly force browser-compatible path resolution
+    resolve: {
+      alias: {
+        'path': 'path-browserify',
+      },
+    },
     plugins: [
       nodePolyfills({
-        // REMOVED 'util' from include
+        // Excluded 'util' to use Node's native version on the server
         include: ['buffer', 'process', 'stream'],
         globals: {
           Buffer: true,
@@ -33,7 +41,6 @@ export default defineConfig((config) => {
           global: true,
         },
         protocolImports: true,
-        // ADDED 'util' to exclude so Node's native util is used
         exclude: ['child_process', 'fs', 'path', 'util'],
       }),
       {
@@ -50,7 +57,7 @@ export default defineConfig((config) => {
       },
       config.mode !== 'test' && !process.env.SKIP_WRANGLER_PROXY && remixCloudflareDevProxy(),
       remixVitePlugin({
-        presets: [vercelPreset()], // CRITICAL FIX: This tells Vercel how to run the server
+        presets: [vercelPreset()],
         future: {
           v3_fetcherPersist: true,
           v3_relativeSplatPath: true,
