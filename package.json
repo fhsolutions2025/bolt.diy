@@ -211,3 +211,7 @@
   },
   "packageManager": "pnpm@9.14.4"
 }
+"scripts": {
+  "build": "cross-env SKIP_WRANGLER_PROXY=true remix vite:build",
+  "typecheck": "tsc --noEmit --skipLibCheck"
+}
