@@ -24,7 +24,6 @@
     "paths": {
       "~/*": ["./app/*"]
     },
-    // vite takes care of building everything, not tsc
     "noEmit": true
   },
   "include": [
@@ -34,12 +33,7 @@
     "**/.server/**/*.tsx",
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx"
-  ]
-}
-{
-  "compilerOptions": {
-    // ... your existing options
-  },
+  ],
   "exclude": [
     "node_modules",
     "build",
